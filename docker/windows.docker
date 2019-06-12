@@ -1,0 +1,58 @@
+# В качестве базового образа используем ubuntu:latest
+FROM ubuntu:bionic
+
+RUN  apt-get update \
+  && apt-get install -y git make
+
+# Устанавливаем зависимости для mxe
+RUN apt-get install -y \
+    autoconf \
+    automake \
+    autopoint \
+    bash \
+    bison \
+    bzip2 \
+    flex \
+    g++ \
+    g++-multilib \
+    gettext \
+    git \
+    gperf \
+    intltool \
+    libc6-dev-i386 \
+    libgdk-pixbuf2.0-dev \
+    libltdl-dev \
+    libssl-dev \
+    libtool-bin \
+    libxml-parser-perl \
+    lzip \
+    make \
+    openssl \
+    p7zip-full \
+    patch \
+    perl \
+    pkg-config \
+    python \
+    ruby \
+    sed \
+    unzip \
+    wget
+
+
+# Клонируем систему сборки
+RUN mkdir /cross && cd /cross && git clone https://github.com/mxe/mxe.git && cd mxe && git checkout build-2019-06-02
+
+WORKDIR /cross/mxe
+
+# Собираем необходимые библиотеки
+RUN make MXE_TARGETS=i686-w64-mingw32.static  qtbase  -j4 JOBS=4
+
+# Позволяет использовать инструменты сборки без указания полного пути
+ENV PATH="/cross/mxe/usr/bin:${PATH}"
+
+WORKDIR /app/build
+
+# Собираем проект
+ENTRYPOINT i686-w64-mingw32.static-qmake-qt5 /app/src/SimpleQtProject.pro \
+           && make release \
+           && cp release/SimpleQtProject.exe /app/res/
