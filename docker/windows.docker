@@ -45,7 +45,7 @@ RUN mkdir /cross && cd /cross && git clone https://github.com/mxe/mxe.git && cd 
 WORKDIR /cross/mxe
 
 # Собираем необходимые библиотеки
-RUN make MXE_TARGETS=i686-w64-mingw32.static  qtbase  -j4 JOBS=4
+RUN make MXE_TARGETS=x86_64-w64-mingw32.static  qtbase  -j4 JOBS=4
 
 # Позволяет использовать инструменты сборки без указания полного пути
 ENV PATH="/cross/mxe/usr/bin:${PATH}"
@@ -53,6 +53,6 @@ ENV PATH="/cross/mxe/usr/bin:${PATH}"
 WORKDIR /app/build
 
 # Собираем проект
-ENTRYPOINT i686-w64-mingw32.static-qmake-qt5 /app/src/SimpleQtProject.pro \
+ENTRYPOINT x86_64-w64-mingw32.static-qmake-qt5 /app/src/SimpleQtProject.pro \
            && make release \
            && cp release/SimpleQtProject.exe /app/res/
