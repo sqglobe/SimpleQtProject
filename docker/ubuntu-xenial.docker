@@ -1,0 +1,19 @@
+FROM ubuntu:xenial
+
+RUN apt-get update \
+ && apt-get install -y software-properties-common \
+ && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+ && apt-get install -y apt-utils 
+
+RUN  apt-get update \
+  && apt-get install -y make gcc g++  qt5-default git
+  
+RUN mkdir -p /app/src
+
+WORKDIR /app/build
+
+# Установим точку входа 
+ENTRYPOINT git -C /app/src clone https://github.com/sqglobe/SimpleQtProject.git \
+               && qmake  /app/src/SimpleQtProject/SimpleQtProject.pro \
+               && make \
+               && cp SimpleQtProject  /app/res/SimpleQtProject-ubuntu-xenial 

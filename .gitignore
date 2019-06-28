@@ -1,1 +1,4 @@
 *.pro.user
+docker/img/*
+docker/releases/*
+docker/result/*
