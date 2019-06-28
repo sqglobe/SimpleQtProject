@@ -1,29 +1,22 @@
 CURR_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+# определяем папку для копирования артефактов сборки
 RELEASE_DIR=$(CURR_DIR)/releases
 
-IMG_DIR=$(CURR_DIR)/img/
-
+# задаем список систем, для которых выполняется сборка
 DOCKERS=centos7 ubuntu-bionic ubuntu-xenial
 
-$(shell   mkdir -p $(IMG_DIR))
+# создаем необходмую дирректорию
 $(shell   mkdir -p $(RELEASE_DIR))
 
-
-# чтобы не удалялись промежуточные файлы
-.SECONDARY: $(addprefix $(IMG_DIR),$(addsuffix .image,$(DOCKERS)) )
-
+# по умолчанию запускаем сборку для всех
 all: $(DOCKERS)
 
-%: $(addprefix $(IMG_DIR), %.image)
-	docker run --mount type=bind,source=$(RELEASE_DIR),target=/app/res secure-dialogues-$(strip $(subst .image,, $(notdir $<) ))
-
-$(addprefix $(IMG_DIR), %.image): %.docker
-	docker build -t  secure-dialogues-$(strip $(subst .docker,, $< )) --file $< . 
-	$(file > $@, "ON")
-	
+# сборка для контретной системы включаем создание образа и запуск контейнера
+%: %.docker
+	docker build -t  simple-qt-$(strip $(subst .docker,, $< )) --file $< . 
+	docker run --mount type=bind,source=$(RELEASE_DIR),target=/app/res simple-qt-$(strip $(subst .docker,, $< ))	
 	
 clean:
-	rm -Rf $(IMG_DIR)
 	rm -Rf $(RELEASE_DIR)
 
