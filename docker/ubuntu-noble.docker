@@ -1,15 +1,15 @@
-# This container is used to compile for Ubuntu 18.04 LTS
-FROM ubuntu:bionic
+# This container is used to compile for Ubuntu 24.04
+FROM ubuntu:noble
 
 RUN apt-get update \
  && apt-get install -y apt-utils 
 
 # Install required packages for the project building
 RUN  apt-get update \
-  && apt-get install -y make gcc g++  qt5-default git
+  && apt-get install -y make gcc g++  qt6-base-dev git
 
 # Construct the folder, into which will be mounted
-# source code directory  
+# source code directory   
 RUN mkdir -p /app/src
 
 # Create and make as a current folder for the project building
@@ -17,6 +17,6 @@ WORKDIR /app/build
 
 # As an entry point invoke project compilation
 # and copying artifacts into the result folder
-ENTRYPOINT qmake  /app/src/SimpleQtProject.pro \
+ENTRYPOINT qmake6  /app/src/SimpleQtProject.pro \
                && make \
-               && cp SimpleQtProject  /app/res/SimpleQtProject-ubuntu-bionic 
+               && cp SimpleQtProject  /app/res/SimpleQtProject-ubuntu-noble 

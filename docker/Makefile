@@ -1,21 +1,23 @@
 CURR_DIR=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-# определяем папку для копирования артефактов сборки
+# Setup the folder for the build artifacts
 RELEASE_DIR=$(CURR_DIR)/releases
 
-# задаем список систем, для которых выполняется сборка
-DOCKERS=centos7 ubuntu-bionic ubuntu-xenial
+# List the name of docker files which might be used for product building
+DOCKERS=ubuntu-bionic ubuntu-noble windows
 
-# создаем необходмую дирректорию
+# Construct folder for build artifacts
 $(shell   mkdir -p $(RELEASE_DIR))
 
-# по умолчанию запускаем сборку для всех
+# By default build product with each container
 all: $(DOCKERS)
 
-# сборка для контретной системы включаем создание образа и запуск контейнера
+# Build docker image and run the product compilation
+# Logic about how to compile is encoded into particular
+# docker image
 %: %.docker
 	docker build -t  simple-qt-$(strip $(subst .docker,, $< )) --file $< . 
-	docker run --mount type=bind,source=$(RELEASE_DIR),target=/app/res simple-qt-$(strip $(subst .docker,, $< ))	
+	docker run --mount type=bind,source=$(RELEASE_DIR),target=/app/res --mount type=bind,source=$(CURR_DIR)/../,target=/app/src simple-qt-$(strip $(subst .docker,, $< ))	
 	
 clean:
 	rm -Rf $(RELEASE_DIR)

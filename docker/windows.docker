@@ -1,11 +1,11 @@
-# В качестве базового образа используем ubuntu:latest
-FROM ubuntu:bionic
+# Use Ubuntu noble as the base image
+FROM ubuntu:noble
+# Default threads number for the docker image
+ARG THREADS_COUNT=20
 
-RUN  apt-get update \
-  && apt-get install -y git make
-
-# Устанавливаем зависимости для mxe
-RUN apt-get install -y \
+# Install dependencies required for the mxe
+# you might take it from the official site
+RUN apt-get update && apt-get install -y \
     autoconf \
     automake \
     autopoint \
@@ -20,8 +20,11 @@ RUN apt-get install -y \
     gperf \
     intltool \
     libc6-dev-i386 \
+    libclang-dev \
     libgdk-pixbuf2.0-dev \
     libltdl-dev \
+    libgl-dev \
+    libpcre2-dev \
     libssl-dev \
     libtool-bin \
     libxml-parser-perl \
@@ -31,28 +34,37 @@ RUN apt-get install -y \
     p7zip-full \
     patch \
     perl \
-    pkg-config \
-    python \
+    python3 \
+    python3-mako \
+    python3-packaging \
+    python3-pkg-resources \
+    python3-setuptools \
+    python-is-python3 \
     ruby \
     sed \
+    sqlite3 \
     unzip \
-    wget
-
-
-# Клонируем систему сборки
-RUN mkdir /cross && cd /cross && git clone https://github.com/mxe/mxe.git && cd mxe && git checkout build-2019-06-02
-
+    wget \
+    xz-utils
+# Clone repo of the mxe project
+RUN mkdir /cross && cd /cross && git clone https://github.com/mxe/mxe.git && cd mxe && git checkout 8f384032d86533452673165d8c0efb4694b18d66
+# Change the workdir
 WORKDIR /cross/mxe
 
-# Собираем необходимые библиотеки
-RUN make MXE_TARGETS=x86_64-w64-mingw32.static  qtbase  -j4 JOBS=4
-
-# Позволяет использовать инструменты сборки без указания полного пути
+# Compile all required libraries
+RUN make MXE_TARGETS="x86_64-w64-mingw32.static"  -j${THREADS_COUNT} qt6
+# Update environment variable
 ENV PATH="/cross/mxe/usr/bin:${PATH}"
 
+# Create the folder for the build results
 WORKDIR /app/build
 
-# Собираем проект
-ENTRYPOINT x86_64-w64-mingw32.static-qmake-qt5 /app/src/SimpleQtProject.pro \
+# Construct the folder, into which will be mounted
+# source code directory 
+RUN mkdir -p /app/src
+
+# As an entry point invoke project compilation
+# and copying artifacts into the result folder
+ENTRYPOINT x86_64-w64-mingw32.static-qt6-qmake /app/src/SimpleQtProject.pro \
            && make release \
            && cp release/SimpleQtProject.exe /app/res/
